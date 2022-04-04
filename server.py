@@ -18,17 +18,25 @@ def handle_client(conn, addr):
     connected = True
     while connected:
         msg_length = conn.recv(HEADER).decode(FORMAT)
-        msg_length = int(msg_length)
-        msg = conn.recv(msg_length).decode(FORMAT)
-        print(f"[{addr}] {msg}")
+        if msg_length:
+            msg_length = int(msg_length)
+            msg = conn.recv(msg_length).decode(FORMAT)
+
+            if msg == DISCONNECT_MESSAGE:
+                connected = False
+
+            print(f"[{addr}] {msg}")
+    conn.close()
 
 # This function is used to handle new connection and distribute them
 def start():
     server.listen()
+    print(f"[LISTENING] Server is listening on {SERVER}")
     while True:
         conn, addr = server.accept()
         thread = threading.Thread(target=handle_client, args = (conn, addr))
-        thread.start(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
+        thread.start()
+        print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
 
 print("[STARTING] server is starting...")
 start()
